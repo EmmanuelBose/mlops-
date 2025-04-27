@@ -1,53 +1,61 @@
 import streamlit as st
 import pickle
-
-
+import os
 
 def get_hardness():
-    hardness = st.text_input("HARDNESS")
-    return hardness
+    return st.text_input("HARDNESS")
 
 def get_toughness():
-    toughness = st.text_input("TOUGHNESS")
-    return toughness
+    return st.text_input("TOUGHNESS")
 
 def get_density():
-    density = st.text_input("DENSITY")
-    return density
+    return st.text_input("DENSITY")
 
 def get_yield_stress():
-    yield_stress = st.text_input("YIELD STRESS")
-    return yield_stress
+    return st.text_input("YIELD STRESS")
 
-
-
-def predict_apps(h,t,d,ys):
-    loaded_model = pickle.load(open('mini_project_model.pkl','rb'))
-    new_data = [[float(h),float(t),float(d),float(ys)]]
-    prediction = loaded_model.predict(new_data)
-    st.write("Prediction with new data: ")
-    st.write(prediction)
+def predict_apps(h, t, d, ys):
+    model_path = 'mini_project_model.pkl'
+    if not os.path.exists(model_path):
+        st.error(f"Model file '{model_path}' not found! Please upload it to the app directory.")
+        return
     
+    try:
+        with open(model_path, 'rb') as file:
+            loaded_model = pickle.load(file)
+        new_data = [[float(h), float(t), float(d), float(ys)]]
+        prediction = loaded_model.predict(new_data)
+        st.success("Prediction Successful!")
+        st.write("Prediction with new data:")
+        st.write(prediction)
+    except Exception as e:
+        st.error(f"Error during prediction: {e}")
 
+# --------- Streamlit App Start ----------
+st.title('PREDICTION OF APPLICATION USE OF MATERIALS')
 
-
-if __name__ == "__main__":
-    st.title('PREDCITION OF APPLICATION USE OF MATERIALS')
+# Display image if available
+if os.path.exists('app.png'):
     st.image('app.png')
-    hardness_value = get_hardness()
-    toughness_value = get_toughness()
-    density_value = get_density()
-    yield_stress_value = get_yield_stress()
-   
-    st.write("The parameters you entered are: ")
-    st.write("hardness ", hardness_value)
-    st.write("toughness ", toughness_value)
-    st.write("density ", density_value)
-    st.write("yield stress ", yield_stress_value)
-    
-    
+else:
+    st.warning("App image not found. Please upload 'app.png'.")
 
+# Get user inputs
+hardness_value = get_hardness()
+toughness_value = get_toughness()
+density_value = get_density()
+yield_stress_value = get_yield_stress()
 
+st.write("The parameters you entered are:")
+st.write(f"Hardness: {hardness_value}")
+st.write(f"Toughness: {toughness_value}")
+st.write(f"Density: {density_value}")
+st.write(f"Yield Stress: {yield_stress_value}")
 
+# Predict button
 if st.button("Predict"):
-    predict_apps(hardness_value,toughness_value,density_value,yield_stress_value)
+    if hardness_value and toughness_value and density_value and yield_stress_value:
+        predict_apps(hardness_value, toughness_value, density_value, yield_stress_value)
+    else:
+        st.warning("Please enter all values before predicting.")
+
